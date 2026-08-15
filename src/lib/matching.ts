@@ -225,11 +225,13 @@ export function buildRescuePlan(
 
   for (const { key, label, needed } of requestedItems) {
     const typeMatches = matches.filter(m => {
-      if (m.requirementKey === key || m.requirementKey === label) return true;
+      if (m.requirementKey === key || m.requirementKey === label || m.requirementKey?.toLowerCase() === key.toLowerCase()) return true;
 
       const rName = (m.resource?.name || '').toLowerCase();
       const rTags = (m.resource?.tags || '').toLowerCase();
       const rCat = (m.resource?.category || '').toLowerCase();
+      const rDesc = (m.resource?.description || '').toLowerCase();
+      const keyLower = key.toLowerCase();
 
       if (key === 'laptops' && (rName.includes('laptop') || rTags.includes('laptop'))) return true;
       if (key === 'projectors' && (rName.includes('projector') || rTags.includes('projector'))) return true;
@@ -242,6 +244,13 @@ export function buildRescuePlan(
           (rCat === 'space' || rTags.includes('room') || rTags.includes('classroom') || rName.includes('lab') || rName.includes('hall') || rName.includes('studio'))) {
         return true;
       }
+
+      // Fuzzy word matching for custom items (e.g. "vr headsets", "studio light panels", "podcast rigs", "oscilloscopes")
+      const words = keyLower.split(/\s+/).filter(w => w.length >= 2 && !['and', 'the', 'for', 'with', 'set', 'kit'].includes(w));
+      if (words.length > 0 && words.some(w => rName.includes(w) || rTags.includes(w) || rDesc.includes(w))) {
+        return true;
+      }
+
       return false;
     });
 

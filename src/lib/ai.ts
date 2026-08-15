@@ -104,6 +104,16 @@ function extractRequirementsFallback(input: string): StructuredRequirement {
     result.title = `${capitalize(result.purpose)} Requirement`;
   }
 
+  // Filter out non-physical items like students, participants, people from otherItems
+  const NON_RESOURCE_WORDS = ['student', 'students', 'people', 'person', 'participant', 'participants', 'developer', 'developers', 'attendee', 'attendees', 'user', 'users', 'guest', 'guests', 'audience', 'human', 'humans'];
+  
+  if (result.otherItems) {
+    result.otherItems = result.otherItems.filter(item => {
+      const lower = item.name.toLowerCase();
+      return !NON_RESOURCE_WORDS.some(w => lower.includes(w));
+    });
+  }
+
   return result;
 }
 
@@ -126,9 +136,13 @@ export async function extractRequirements(input: string): Promise<StructuredRequ
 
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    const prompt = `Extract structured resource requirements from this user request. Return ONLY a JSON object:
+    const prompt = `Extract structured resource requirements from this user request. 
+CRITICAL RULE: "otherItems" must ONLY contain physical hardware, tools, cameras, headsets, lights, podcast rigs, furniture, equipment, or physical spaces. 
+NEVER put people, students, participants, attendees, or developers into "otherItems"! Put human headcount ONLY into the "participants" field.
+
+Return ONLY a JSON object:
 {
-  "title": "short descriptive title e.g. AI Workshop Requirements",
+  "title": "specific descriptive title e.g. XR & Spatial Audio Workshop Requirements",
   "laptops": number or null,
   "desktops": number or null,
   "projectors": number or null,
@@ -139,22 +153,32 @@ export async function extractRequirements(input: string): Promise<StructuredRequ
   "rooms": number or null,
   "classrooms": number or null,
   "arduinoKits": number or null,
-  "participants": number or null,
+  "participants": number or null (e.g. headcount of students/people),
   "duration": "duration string e.g. 4 hours or null",
   "purpose": "purpose string e.g. workshop",
   "startTime": "HH:MM or null",
   "endTime": "HH:MM or null",
   "needDate": "YYYY-MM-DD or null",
   "estimatedCost": estimated purchase cost in INR (number) if bought new,
-  "otherItems": [{"name": "item name", "quantity": number}]
+  "otherItems": [{"name": "physical item name e.g. VR headsets, podcast rigs, studio light panels", "quantity": number}]
 }
 
-Set unmentioned numeric fields to null. Estimate a realistic new purchase price in INR for estimatedCost.
 User Input: "${input}"`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text().replace(/```json\n?|```/g, '').trim();
     const parsed = JSON.parse(text);
+
+    // Sanitize parsed output to remove non-resource items from otherItems
+    const NON_RESOURCE_WORDS = ['student', 'students', 'people', 'person', 'participant', 'participants', 'developer', 'developers', 'attendee', 'attendees', 'user', 'users', 'guest', 'guests', 'audience', 'human', 'humans'];
+    if (parsed.otherItems && Array.isArray(parsed.otherItems)) {
+      parsed.otherItems = parsed.otherItems.filter((item: any) => {
+        if (!item || !item.name) return false;
+        const lower = item.name.toLowerCase();
+        return !NON_RESOURCE_WORDS.some(w => lower.includes(w));
+      });
+    }
+
     return parsed;
   } catch (e) {
     console.error('AI extraction failed, using fallback:', e);

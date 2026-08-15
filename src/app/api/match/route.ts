@@ -53,11 +53,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const NON_RESOURCE_WORDS = ['student', 'students', 'people', 'person', 'participant', 'participants', 'developer', 'developers', 'attendee', 'attendees', 'user', 'users', 'guest', 'guests', 'audience', 'human', 'humans'];
+
     if (extracted.otherItems && Array.isArray(extracted.otherItems)) {
       for (const item of extracted.otherItems) {
         if (item.name && item.quantity > 0) {
-          const kw = item.name.toLowerCase().split(/\s+/);
-          itemRequests.push({ key: item.name, label: item.name, needed: item.quantity, keywords: kw });
+          const lower = item.name.toLowerCase();
+          if (NON_RESOURCE_WORDS.some(w => lower.includes(w))) continue;
+
+          const kw = lower.split(/\s+/).filter(w => w.length >= 2 && !['and', 'the', 'for', 'with', 'set', 'kit'].includes(w));
+          if (kw.length > 0) {
+            itemRequests.push({ key: item.name, label: item.name, needed: item.quantity, keywords: kw });
+          }
         }
       }
     }
@@ -74,8 +81,8 @@ export async function POST(req: NextRequest) {
         const desc = res.description.toLowerCase();
 
         return reqItem.keywords.some(kw =>
-          name.includes(kw) || tags.includes(kw) || desc.includes(kw) ||
-          (reqItem.key === 'rooms' || reqItem.key === 'classrooms' ? category === 'space' : false)
+          (name.includes(kw) || tags.includes(kw) || desc.includes(kw)) ||
+          ((reqItem.key === 'rooms' || reqItem.key === 'classrooms' || reqItem.key.toLowerCase().includes('studio') || reqItem.key.toLowerCase().includes('hall')) ? category === 'space' : false)
         );
       });
 

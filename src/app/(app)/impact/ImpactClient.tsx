@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import {
   TrendingUp, Leaf, Package, Recycle, Zap,
-  BarChart3, ArrowRight, Info,
+  BarChart3, ArrowRight, Info, Sparkles,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -285,6 +285,55 @@ export default function ImpactClient({
                 <strong style={{ color: 'var(--text-purple)' }}>Shared Capacity Utilization:</strong> Main Auditorium and Lab 4 have 38% unreserved weekday slots. AI scheduling matches these with inter-departmental seminar needs automatically.
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Department Sustainability & ESG Leaderboard */}
+        <div className="card animate-fade-in stagger-3" style={{ marginBottom: '32px', padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 10 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={16} color="var(--rescue-green)" />
+                <span style={{ fontSize: '16px', fontWeight: 800 }}>Department Sustainability Leaderboard</span>
+              </div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                Ranked by institutional sharing efficiency, cost avoidance, and active resource lending
+              </div>
+            </div>
+            <span className="badge badge-purple" style={{ fontSize: '11px' }}>
+              8 Active Departments
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+            {[
+              { rank: '🥇 #1', dept: 'Computer Engineering & AI', score: '98.4%', badge: '🏆 Zero Waste Champion', saved: '₹14.2L', co2: '5,500 kg', color: '#7C3AED' },
+              { rank: '🥈 #2', dept: 'Mechanical & Fabrication', score: '96.8%', badge: '⚙️ Top Capacity Provider', saved: '₹9.3L', co2: '3,200 kg', color: '#EA580C' },
+              { rank: '🥉 #3', dept: 'Robotics Lab', score: '95.1%', badge: '🤖 Circular Hardware Pioneer', saved: '₹7.6L', co2: '2,800 kg', color: '#D97706' },
+              { rank: '#4', dept: 'Media & XR Studio', score: '92.7%', badge: '🎬 Creative Asset Sharer', saved: '₹5.4L', co2: '1,920 kg', color: '#00D9A5' },
+              { rank: '#5', dept: 'Biotech & Life Sciences', score: '91.2%', badge: '🧬 Green Science Node', saved: '₹4.8L', co2: '2,100 kg', color: '#059669' },
+              { rank: '#6', dept: 'Design & Architecture', score: '89.5%', badge: '📐 Modular Seating Hub', saved: '₹3.6L', co2: '1,800 kg', color: '#DB2777' },
+            ].map((leader, i) => (
+              <div key={i} style={{
+                padding: '14px 16px', background: 'var(--bg-elevated)', borderRadius: '12px',
+                border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '6px',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>{leader.rank}</span>
+                  <span className="badge badge-green" style={{ fontSize: '10px' }}>{leader.score}</span>
+                </div>
+                <div style={{ fontSize: '13px', fontWeight: 700, color: leader.color }}>
+                  {leader.dept}
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  {leader.badge}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', fontSize: '11px' }}>
+                  <span style={{ color: 'var(--rescue-green)', fontWeight: 700 }}>Saved: {leader.saved}</span>
+                  <span style={{ color: 'var(--text-muted)' }}>CO₂: {leader.co2}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

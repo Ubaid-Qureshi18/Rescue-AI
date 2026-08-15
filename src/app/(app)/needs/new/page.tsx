@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Sparkles, Zap, Edit3, ChevronRight, AlertTriangle,
-  CheckCircle2, TrendingUp, Brain, ShieldAlert,
+  CheckCircle2, TrendingUp, Brain, ShieldAlert, Mic, MicOff,
 } from 'lucide-react';
 
 const EXAMPLES = [
@@ -35,6 +35,43 @@ export default function CreateNeedPage() {
   const [step, setStep] = useState<'input' | 'extracted' | 'creating'>('input');
   const [riskAnalysis, setRiskAnalysis] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+
+  const toggleVoiceInput = () => {
+    if (typeof window === 'undefined') return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Voice dictation is supported in modern browsers like Chrome, Edge, and Safari.');
+      return;
+    }
+
+    if (isListening) {
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-IN';
+
+      recognition.onstart = () => setIsListening(true);
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setInput(prev => (prev ? `${prev} ${transcript}` : transcript));
+        }
+      };
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
+
+      recognition.start();
+    } catch (e) {
+      console.error(e);
+      setIsListening(false);
+    }
+  };
 
   const handleExtract = async () => {
     if (!input.trim()) return;
@@ -144,7 +181,26 @@ export default function CreateNeedPage() {
 
             <div className="card card-rescue" style={{ padding: 32, marginBottom: 24 }}>
               <div className="form-group" style={{ marginBottom: 20 }}>
-                <label className="form-label">Describe your requirement</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <label className="form-label" style={{ margin: 0 }}>Describe your requirement</label>
+                  <button
+                    type="button"
+                    onClick={toggleVoiceInput}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700,
+                      padding: '4px 10px', borderRadius: 6, cursor: 'pointer',
+                      background: isListening ? 'rgba(239,68,68,0.2)' : 'rgba(124,58,237,0.12)',
+                      color: isListening ? '#F87171' : 'var(--text-purple)',
+                      border: isListening ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(124,58,237,0.25)',
+                    }}
+                  >
+                    {isListening ? (
+                      <><MicOff size={12} className="animate-pulse" /> Listening... (Click to stop)</>
+                    ) : (
+                      <><Mic size={12} /> 🎙️ Voice Dictate</>
+                    )}
+                  </button>
+                </div>
                 <textarea
                   className="input textarea"
                   style={{ minHeight: 140, fontSize: 15, lineHeight: 1.7 }}

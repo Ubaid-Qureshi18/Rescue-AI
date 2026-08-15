@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import {
   CheckCircle2, Clock, XCircle, ChevronRight,
-  MapPin, Building2, Zap, Eye, Package, Sparkles,
+  MapPin, Building2, Zap, Eye, Package, Sparkles, FileText, X, Download, ShieldCheck
 } from 'lucide-react';
 
 const STATUS_INFO: Record<string, { label: string; badge: string; icon: any }> = {
@@ -21,6 +21,41 @@ export default function RequestsClient({ requirements }: { requirements: any[] }
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'matched' | 'fulfilled'>('all');
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+
+  // AI MoU Modal state
+  const [selectedMoUReq, setSelectedMoUReq] = useState<any | null>(null);
+  const [mouData, setMouData] = useState<any | null>(null);
+  const [isGeneratingMoU, setIsGeneratingMoU] = useState(false);
+
+  const handleGenerateMoU = async (req: any) => {
+    setSelectedMoUReq(req);
+    setMouData(null);
+    setIsGeneratingMoU(true);
+    try {
+      const topMatch = req.matches?.[0];
+      const resp = await fetch('/api/ai/mou', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resourceName: topMatch?.resource?.name || req.title,
+          requesterName: req.user?.name || 'Authorized Requester',
+          requesterDept: req.user?.department?.name || 'Academics Department',
+          ownerDept: topMatch?.resource?.department?.name || 'Resource Facility',
+          quantity: topMatch?.quantityMatched || 1,
+          neededFrom: req.neededFrom,
+          neededUntil: req.neededUntil,
+          estimatedSavings: req.matches?.reduce((s: number, m: any) => s + (m.impact?.estimatedSavings || 0), 0) || req.estimatedCost || 50000,
+          reason: req.description || req.title,
+        }),
+      });
+      const data = await resp.json();
+      setMouData(data.mou);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsGeneratingMoU(false);
+    }
+  };
 
   const handleApproveRequirement = async (reqId: string) => {
     setApprovingId(reqId);
@@ -109,7 +144,7 @@ export default function RequestsClient({ requirements }: { requirements: any[] }
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {filtered.map((req, i) => {
+            {filtered.map((req) => {
               const statusInfo = STATUS_INFO[req.status] || STATUS_INFO.PENDING;
               const StatusIcon = statusInfo.icon;
               const topMatch = req.matches?.[0];
@@ -211,6 +246,13 @@ export default function RequestsClient({ requirements }: { requirements: any[] }
                         <Eye size={12} />
                         View Matches
                       </Link>
+                      <button
+                        className="btn btn-sm"
+                        style={{ background: 'rgba(124,58,237,0.12)', color: 'var(--text-purple)', border: '1px solid rgba(124,58,237,0.25)', fontSize: 11 }}
+                        onClick={() => handleGenerateMoU(req)}
+                      >
+                        <FileText size={12} /> AI Transfer MoU
+                      </button>
                       {req.status === 'MATCHED' && (
                         <button
                           className="btn btn-primary btn-sm"
@@ -229,6 +271,85 @@ export default function RequestsClient({ requirements }: { requirements: any[] }
           </div>
         )}
       </div>
+
+      {/* ============================================================
+          AI MoU AGREEMENT MODAL
+          ============================================================ */}
+      {selectedMoUReq && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200,
+          backdropFilter: 'blur(12px)', padding: 20,
+        }} onClick={() => setSelectedMoUReq(null)}>
+          <div className="card card-ai animate-fade-in-scale" style={{ width: 620, maxHeight: '85vh', overflowY: 'auto', padding: 32, position: 'relative' }} onClick={e => e.stopPropagation()}>
+            <button style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+              onClick={() => setSelectedMoUReq(null)}>
+              <X size={20} />
+            </button>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, var(--rescue-green), var(--ai-purple))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ShieldCheck size={20} color="white" />
+              </div>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 800 }}>Institutional Inter-Departmental MoU</h2>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>AI-generated formal resource custody & ESG agreement</p>
+              </div>
+            </div>
+
+            {isGeneratingMoU ? (
+              <div style={{ padding: 40, textAlign: 'center' }}>
+                <div className="loading-spinner" style={{ width: 28, height: 28, margin: '0 auto 16px' }} />
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Gemini AI is structuring transfer terms & compliance protocols...</p>
+              </div>
+            ) : mouData ? (
+              <div>
+                <div style={{ padding: '12px 16px', background: 'var(--bg-elevated)', borderRadius: 10, marginBottom: 16, border: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Protocol Reference:</div>
+                    <strong style={{ fontSize: 13, color: 'var(--rescue-green)' }}>{mouData.referenceNumber}</strong>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Effective Date:</div>
+                    <strong style={{ fontSize: 12 }}>{mouData.effectiveDate}</strong>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 16 }}>
+                  <h4 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.4px' }}>Parties & Asset Scope</h4>
+                  <div style={{ background: 'var(--bg-elevated)', padding: 14, borderRadius: 8, fontSize: 13, lineHeight: 1.6 }}>
+                    <div>• <strong>Lending Facility:</strong> {mouData.parties?.lenderDepartment}</div>
+                    <div>• <strong>Borrower Unit:</strong> {mouData.parties?.borrowerDepartment} ({mouData.parties?.requester})</div>
+                    <div>• <strong>Asset & Quantity:</strong> {mouData.assetDetails?.item} ({mouData.assetDetails?.quantity} units)</div>
+                    <div>• <strong>Estimated Savings:</strong> <span style={{ color: 'var(--rescue-green)', fontWeight: 700 }}>{mouData.assetDetails?.estimatedProcurementAvoided}</span></div>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 20 }}>
+                  <h4 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8, letterSpacing: '0.4px' }}>Compliance Terms</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {mouData.termsAndConditions?.map((term: string, i: number) => (
+                      <div key={i} style={{ display: 'flex', gap: 8, fontSize: 12, color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', padding: '6px 10px', borderRadius: 6 }}>
+                        <span style={{ color: 'var(--rescue-green)', fontWeight: 700 }}>{i + 1}.</span>
+                        <span>{term}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                  <button className="btn btn-ghost" onClick={() => setSelectedMoUReq(null)}>Close</button>
+                  <button className="btn btn-rescue" onClick={() => window.print()}>
+                    <Download size={14} /> Print / Export Signed MoU
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Unable to load MoU protocol.</p>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

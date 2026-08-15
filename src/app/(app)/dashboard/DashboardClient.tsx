@@ -255,56 +255,76 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
               ))}
             </div>
           </div>
+        </div>
 
-          {/* Recent Requirements */}
-          <div className="card animate-fade-in stagger-4">
-            <div className="section-header" style={{ marginBottom: '16px' }}>
-              <div>
-                <div className="section-title" style={{ fontSize: '16px' }}>Recent Requirements</div>
-                <div className="section-subtitle">Latest resource needs</div>
+        {/* AI Predictive Surplus Forecast Section */}
+        <div className="card card-ai animate-fade-in stagger-4" style={{ marginTop: '24px', padding: '24px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: 10 }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={16} color="var(--rescue-green)" />
+                <span style={{ fontSize: '16px', fontWeight: 800 }}>AI Predictive Surplus Forecast</span>
+                <span className="badge badge-purple" style={{ fontSize: '10px' }}>Gemini 2.0 Proactive</span>
               </div>
-              <Link href="/requests" className="btn btn-ghost btn-sm">
-                View all <ArrowRight size={12} />
-              </Link>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                Forecasts upcoming idle asset windows before purchasing cycles begin
+              </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {requirements.length === 0 ? (
-                <div className="empty-state" style={{ padding: '24px' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>📋</div>
-                  <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>No requirements yet</div>
+            <span className="badge badge-green" style={{ fontSize: '11px', padding: '4px 10px' }}>
+              Estimated ₹10.1L Savings Pipeline
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+            {[
+              {
+                dept: 'Computer Engineering & AI',
+                surplus: '18 Dell Laptops & 1 GPU Server',
+                window: 'Exam Season (Sept 15 - Oct 10)',
+                opp: 'Can fulfill Robotics & Data Science annual workshops without external rental.',
+                conf: 94,
+                savings: '₹4.8L',
+              },
+              {
+                dept: 'Mechanical & Fabrication',
+                surplus: 'Haas Mini Mill CNC (40 hrs)',
+                window: 'Post-Formula Student Break',
+                opp: 'Available for Robotics drone chassis and Electronics heat-sink prototyping.',
+                conf: 96,
+                savings: '₹3.5L',
+              },
+              {
+                dept: 'Media & XR Innovation',
+                surplus: '8 Meta Quest 3 VR Headsets',
+                window: 'Post-Exhibition Recess',
+                opp: 'Can be allocated to Biotech / Medical 3D anatomy simulation module.',
+                conf: 89,
+                savings: '₹3.2L',
+              },
+            ].map((p, i) => (
+              <div key={i} style={{
+                padding: '16px', background: 'var(--bg-elevated)', borderRadius: '12px',
+                border: '1px solid var(--border-subtle)', display: 'flex', flexDirection: 'column', gap: '8px',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>{p.dept}</strong>
+                  <span className="badge badge-green" style={{ fontSize: '10px' }}>{p.conf}% Confidence</span>
                 </div>
-              ) : (
-                requirements.map((req: any) => (
-                  <div key={req.id} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '10px 12px',
-                    background: 'var(--bg-elevated)',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border-subtle)',
-                  }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: '13px', fontWeight: 600, marginBottom: '2px' }}>{req.title}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        {req.user?.name || 'Anonymous'} · {new Date(req.createdAt).toLocaleDateString('en-GB')}
-                      </div>
-                    </div>
-                    {req.status === 'FULFILLED' ? (
-                      <CheckCircle2 size={16} color="var(--rescue-green)" />
-                    ) : req.status === 'MATCHED' ? (
-                      <Clock size={16} color="#FCD34D" />
-                    ) : (
-                      <AlertCircle size={16} color="var(--text-muted)" />
-                    )}
-                    <span className={`badge ${req.status === 'FULFILLED' ? 'badge-green' : req.status === 'MATCHED' ? 'badge-amber' : 'badge-muted'}`}
-                      style={{ fontSize: '10px' }}>
-                      {req.status}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--rescue-green)' }}>
+                  📦 {p.surplus}
+                </div>
+                <div style={{ fontSize: '11px', color: '#FCD34D' }}>
+                  ⏳ Idle Window: {p.window}
+                </div>
+                <p style={{ fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.45, margin: 0 }}>
+                  {p.opp}
+                </p>
+                <div style={{ marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid var(--border-subtle)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>Opportunity Value:</span>
+                  <strong style={{ fontSize: '12px', color: 'var(--text-primary)' }}>{p.savings}</strong>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

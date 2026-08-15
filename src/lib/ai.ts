@@ -136,13 +136,21 @@ export async function extractRequirements(input: string): Promise<StructuredRequ
 
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-    const prompt = `Extract structured resource requirements from this user request. 
-CRITICAL RULE: "otherItems" must ONLY contain physical hardware, tools, cameras, headsets, lights, podcast rigs, furniture, equipment, or physical spaces. 
-NEVER put people, students, participants, attendees, or developers into "otherItems"! Put human headcount ONLY into the "participants" field.
+    const prompt = `You are RESCUE AI's precision requirements extraction engine.
+Parse the following user request into structured resource items:
 
-Return ONLY a JSON object:
+RULES:
+1. QUANTITY VS MODEL NAME: "Need 6 Meta Quest 3 VR headsets" requested quantity is 6, NOT 3! Do NOT confuse product model numbers (e.g. Meta Quest 3, RTX 4090, Pi 5) with requested quantities.
+2. QUANTITY BLEEDING: Each item has its own quantity preceding it (e.g. "2 RodeCaster Pro podcast rigs" -> quantity: 2; "4 studio light panels" -> quantity: 4; "and the soundproof green screen studio" -> quantity: 1). Do NOT apply quantity 4 to the studio!
+3. NO MISSING ITEMS: Extract EVERY single physical resource mentioned in the prompt. Do not skip podcast rigs, consoles, headsets, light panels, or rooms.
+4. HEADCOUNT: Put student/people count ONLY into "participants". Do NOT put students or people into "otherItems".
+5. ROOMS & STUDIOS: If a room/studio is requested (e.g. "green screen studio"), set "rooms": 1 unless explicitly requested as multiple.
+
+User Input: "${input}"
+
+Return ONLY valid JSON matching this schema:
 {
-  "title": "specific descriptive title e.g. XR & Spatial Audio Workshop Requirements",
+  "title": "descriptive specific title e.g. XR & Audio Studio Workshop Setup",
   "laptops": number or null,
   "desktops": number or null,
   "projectors": number or null,
@@ -153,17 +161,12 @@ Return ONLY a JSON object:
   "rooms": number or null,
   "classrooms": number or null,
   "arduinoKits": number or null,
-  "participants": number or null (e.g. headcount of students/people),
-  "duration": "duration string e.g. 4 hours or null",
+  "participants": number or null,
+  "duration": "duration string or null",
   "purpose": "purpose string e.g. workshop",
-  "startTime": "HH:MM or null",
-  "endTime": "HH:MM or null",
-  "needDate": "YYYY-MM-DD or null",
   "estimatedCost": estimated purchase cost in INR (number) if bought new,
   "otherItems": [{"name": "physical item name e.g. VR headsets, podcast rigs, studio light panels", "quantity": number}]
-}
-
-User Input: "${input}"`;
+}`;
 
     const result = await model.generateContent(prompt);
     const text = result.response.text().replace(/```json\n?|```/g, '').trim();

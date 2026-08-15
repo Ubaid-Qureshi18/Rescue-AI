@@ -1,5 +1,6 @@
 import Sidebar from '@/components/Sidebar';
 import AIChatWidget from '@/components/AIChatWidget';
+import CommandPalette from '@/components/CommandPalette';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,6 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </div>
       <AIChatWidget />
+      <CommandPalette />
     </div>
   );
 }

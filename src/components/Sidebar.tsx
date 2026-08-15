@@ -16,6 +16,7 @@ import {
   UserCheck,
   ClipboardList,
   TrendingUp,
+  Search,
 } from 'lucide-react';
 
 const navItems = [
@@ -96,6 +97,22 @@ export default function Sidebar() {
           </Link>
           <div className="sidebar-tagline">INSPIRE University</div>
         </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }));
+          }}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', margin: '0 12px 14px',
+            background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)', borderRadius: 8,
+            color: 'var(--text-muted)', fontSize: 12, cursor: 'pointer',
+          }}
+        >
+          <Search size={14} color="var(--rescue-green)" />
+          <span>Quick search...</span>
+          <kbd style={{ marginLeft: 'auto', fontSize: 10, padding: '2px 5px', background: 'var(--bg-elevated)', borderRadius: 4, color: 'var(--text-secondary)' }}>Ctrl+K</kbd>
+        </button>
 
         <nav className="sidebar-nav">
           <div className="sidebar-section-label">Platform</div>

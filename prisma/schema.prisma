@@ -1,0 +1,109 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  building    String   @default("")
+  color       String   @default("#00D9A5")
+  resources   Resource[]
+  users       User[]
+  createdAt   DateTime @default(now())
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  role         String   @default("REQUESTER")
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  requirements Requirement[]
+  createdAt    DateTime @default(now())
+}
+
+model Resource {
+  id              String   @id @default(cuid())
+  name            String
+  category        String
+  description     String   @default("")
+  quantity        Int
+  condition       String   @default("Good")
+  location        String
+  building        String   @default("")
+  departmentId    String
+  department      Department @relation(fields: [departmentId], references: [id])
+  status          String   @default("AVAILABLE")
+  estimatedValue  Float    @default(0)
+  availableFrom   DateTime @default(now())
+  availableUntil  DateTime?
+  tags            String   @default("")
+  specifications  String   @default("")
+  imageUrl        String   @default("")
+  lastVerified    DateTime @default(now())
+  matches         Match[]
+  reservations    Reservation[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Requirement {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  title           String
+  description     String
+  rawInput        String   @default("")
+  structuredData  String   @default("")
+  neededFrom      DateTime
+  neededUntil     DateTime
+  status          String   @default("PENDING")
+  estimatedCost   Float    @default(0)
+  matches         Match[]
+  createdAt       DateTime @default(now())
+}
+
+model Match {
+  id             String   @id @default(cuid())
+  requirementId  String
+  requirement    Requirement @relation(fields: [requirementId], references: [id])
+  resourceId     String
+  resource       Resource @relation(fields: [resourceId], references: [id])
+  matchScore     Float
+  quantityMatched Int     @default(0)
+  reason         String   @default("")
+  status         String   @default("PENDING")
+  impact         Impact?
+  reservation    Reservation?
+  createdAt      DateTime @default(now())
+}
+
+model Reservation {
+  id            String   @id @default(cuid())
+  resourceId    String
+  resource      Resource @relation(fields: [resourceId], references: [id])
+  matchId       String?  @unique
+  match         Match?   @relation(fields: [matchId], references: [id])
+  startTime     DateTime
+  endTime       DateTime
+  status        String   @default("ACTIVE")
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+}
+
+model Impact {
+  id                     String   @id @default(cuid())
+  matchId                String   @unique
+  match                  Match    @relation(fields: [matchId], references: [id])
+  estimatedSavings       Float    @default(0)
+  estimatedWasteAvoided  Float    @default(0)
+  estimatedCO2Avoided    Float    @default(0)
+  createdAt              DateTime @default(now())
+}

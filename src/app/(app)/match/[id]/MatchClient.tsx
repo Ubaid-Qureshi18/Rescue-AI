@@ -93,7 +93,14 @@ export default function MatchClient({ requirement, extracted, rescuePlan, matchR
             {requirement.title}
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => window.print()}
+            title="Print or Save PDF of Rescue Plan"
+          >
+            🖨️ Export Plan
+          </button>
           <span className={`badge ${rescued ? 'badge-green' : 'badge-purple'}`}>
             <CheckCircle2 size={10} />
             {rescued ? 'FULFILLED IN DATABASE' : `${matchResults.length} resources found`}

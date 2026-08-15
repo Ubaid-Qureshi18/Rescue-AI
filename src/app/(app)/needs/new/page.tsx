@@ -8,10 +8,11 @@ import {
 } from 'lucide-react';
 
 const EXAMPLES = [
-  'I need 20 laptops, a projector, 30 chairs and a classroom for a 4-hour AI workshop with 30 participants.',
-  'We need equipment for a robotics workshop — Arduino kits, soldering stations and a large workshop hall for 40 students.',
-  'Need to set up a seminar for 80 people: chairs, 2 projectors, microphones and a seminar hall for 3 hours.',
-  'Planning a photography workshop — 4 DSLR cameras, tripods, a studio room and editing laptops for 15 participants.',
+  { icon: '🚀', label: 'AI Hackathon Setup', text: 'Need 20 Dell laptops, 2 4K projectors, 50 ergonomic chairs and Smart Classroom 101 for an AI Hackathon with 40 developers.' },
+  { icon: '🤖', label: 'Robotics Challenge', text: 'We need 25 Arduino Mega kits, 10 Raspberry Pi 5 boards, soldering workbenches and the Robotics Prototyping Hall for a 2-day competition.' },
+  { icon: '🧬', label: 'Genomics Lab Workshop', text: 'Need 2 refrigerated microcentrifuges, 1 NanoDrop spectrophotometer and the Biotech Cleanroom for a molecular genetics practical session.' },
+  { icon: '🎙️', label: 'Media & Spatial Audio', text: 'Need 6 Meta Quest 3 VR headsets, 2 RodeCaster Pro podcast rigs, 4 studio light panels and the soundproof green screen studio for 25 students.' },
+  { icon: '📊', label: 'Campus Symposium', text: 'Symposium needs 100 folding chairs, 2 4K laser projectors, 4 wireless microphones, conference tables and the 180-seat Grand Auditorium.' },
 ];
 
 const RISK_CONFIG = {
@@ -184,18 +185,20 @@ export default function CreateNeedPage() {
               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 12, fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
                 Try an example
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 10 }}>
                 {EXAMPLES.map((ex, i) => (
                   <button key={i}
                     className="card card-hover"
-                    style={{ padding: '12px 16px', textAlign: 'left', cursor: 'pointer', border: 'none', width: '100%' }}
-                    onClick={() => setInput(ex)}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                      <div style={{ color: 'var(--rescue-green)', flexShrink: 0, marginTop: 1 }}>
-                        <ChevronRight size={14} />
-                      </div>
-                      <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{ex}</span>
+                    style={{ padding: '14px 16px', textAlign: 'left', cursor: 'pointer', border: '1px solid var(--border-subtle)' }}
+                    onClick={() => setInput(ex.text)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <span style={{ fontSize: 16 }}>{ex.icon}</span>
+                      <strong style={{ fontSize: 13, color: 'var(--text-primary)' }}>{ex.label}</strong>
+                      <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--rescue-green)', fontWeight: 700 }}>1-Click Try →</span>
                     </div>
+                    <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.45, margin: 0 }}>
+                      {ex.text}
+                    </p>
                   </button>
                 ))}
               </div>

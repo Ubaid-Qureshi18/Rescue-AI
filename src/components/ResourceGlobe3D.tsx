@@ -4,12 +4,17 @@ import { useEffect, useRef } from 'react';
 
 export default function ResourceGlobe3D() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const animRef = useRef<number>(0);
   const rotationRef = useRef({ x: 0.3, y: 0 });
+  const isDraggingRef = useRef(false);
+  const lastMouseRef = useRef({ x: 0, y: 0 });
+  const isVisibleRef = useRef(true);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -25,10 +30,39 @@ export default function ResourceGlobe3D() {
     };
     window.addEventListener('resize', handleResize);
 
+    // Performance observer: pause RAF when out of viewport
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisibleRef.current = entry.isIntersecting;
+    }, { threshold: 0.1 });
+    observer.observe(container);
+
+    // Mouse / Touch Drag interaction
+    const handleMouseDown = (e: MouseEvent) => {
+      isDraggingRef.current = true;
+      lastMouseRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      const dx = e.clientX - lastMouseRef.current.x;
+      const dy = e.clientY - lastMouseRef.current.y;
+      rotationRef.current.y += dx * 0.008;
+      rotationRef.current.x = Math.max(-1.2, Math.min(1.2, rotationRef.current.x + dy * 0.008));
+      lastMouseRef.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
     // Generate 3D surface points
     const points: Array<{ x: number; y: number; z: number; color: string; size: number }> = [];
-    const count = 140;
-    const colors = ['#00D9A5', '#7C3AED', '#2563EB', '#DB2777', '#D97706'];
+    const count = 150;
+    const colors = ['#00D9A5', '#7C3AED', '#2563EB', '#DB2777', '#D97706', '#059669'];
 
     for (let i = 0; i < count; i++) {
       const phi = Math.acos(-1 + (2 * i) / count);
@@ -46,9 +80,15 @@ export default function ResourceGlobe3D() {
     let time = 0;
 
     const draw = () => {
+      if (!isVisibleRef.current) {
+        animRef.current = requestAnimationFrame(draw);
+        return;
+      }
+
       time += 0.012;
-      rotationRef.current.y += 0.005;
-      rotationRef.current.x = 0.25 + Math.sin(time * 0.5) * 0.08;
+      if (!isDraggingRef.current) {
+        rotationRef.current.y += 0.006;
+      }
 
       const cssW = canvas.offsetWidth;
       const cssH = canvas.offsetHeight;
@@ -64,8 +104,8 @@ export default function ResourceGlobe3D() {
 
       // Outer glowing halo
       const halo = ctx.createRadialGradient(cx, cy, 40, cx, cy, 140);
-      halo.addColorStop(0, 'rgba(0, 217, 165, 0.12)');
-      halo.addColorStop(0.5, 'rgba(124, 58, 237, 0.08)');
+      halo.addColorStop(0, 'rgba(0, 217, 165, 0.14)');
+      halo.addColorStop(0.5, 'rgba(124, 58, 237, 0.09)');
       halo.addColorStop(1, 'transparent');
       ctx.beginPath();
       ctx.arc(cx, cy, 140, 0, Math.PI * 2);
@@ -93,7 +133,7 @@ export default function ResourceGlobe3D() {
           if (a === 0) ctx.moveTo(sx, sy);
           else ctx.lineTo(sx, sy);
         }
-        ctx.strokeStyle = 'rgba(0, 217, 165, 0.08)';
+        ctx.strokeStyle = 'rgba(0, 217, 165, 0.09)';
         ctx.lineWidth = 0.8;
         ctx.stroke();
       }
@@ -120,11 +160,11 @@ export default function ResourceGlobe3D() {
           const b = projected[j];
           if (a.z2 < 0 && b.z2 < 0) continue;
           const dist = Math.hypot(a.sx - b.sx, a.sy - b.sy);
-          if (dist < 42) {
+          if (dist < 44) {
             ctx.beginPath();
             ctx.moveTo(a.sx, a.sy);
             ctx.lineTo(b.sx, b.sy);
-            ctx.strokeStyle = `rgba(0, 217, 165, ${0.18 * (1 - dist / 42)})`;
+            ctx.strokeStyle = `rgba(0, 217, 165, ${0.2 * (1 - dist / 44)})`;
             ctx.lineWidth = 0.6;
             ctx.stroke();
           }
@@ -133,7 +173,7 @@ export default function ResourceGlobe3D() {
 
       // Draw projected points
       projected.forEach(p => {
-        const alpha = p.z2 > 0 ? 0.9 : 0.25;
+        const alpha = p.z2 > 0 ? 0.95 : 0.25;
         const r = p.size * p.scale;
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
@@ -173,11 +213,15 @@ export default function ResourceGlobe3D() {
     return () => {
       cancelAnimationFrame(animRef.current);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      observer.disconnect();
     };
   }, []);
 
   return (
-    <div style={{ width: '100%', height: '320px', position: 'relative' }}>
+    <div ref={containerRef} style={{ width: '100%', height: '320px', position: 'relative', cursor: 'grab' }}>
       <canvas
         ref={canvasRef}
         style={{ width: '100%', height: '100%', display: 'block' }}

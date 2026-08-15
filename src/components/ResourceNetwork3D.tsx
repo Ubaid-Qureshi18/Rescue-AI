@@ -188,7 +188,22 @@ export default function ResourceNetwork3D({ departments, rescuedCount, totalReso
     };
     window.addEventListener('resize', handleResize);
 
+    const isVisibleRef = { current: true };
+    const container = containerRef.current;
+    let observer: IntersectionObserver | null = null;
+    if (container) {
+      observer = new IntersectionObserver(([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+      }, { threshold: 0.1 });
+      observer.observe(container);
+    }
+
     const draw = () => {
+      if (!isVisibleRef.current) {
+        animRef.current = requestAnimationFrame(draw);
+        return;
+      }
+
       timeRef.current += 0.016;
       const t = timeRef.current;
       const cssW = canvas.offsetWidth;
@@ -457,6 +472,7 @@ export default function ResourceNetwork3D({ departments, rescuedCount, totalReso
       canvas.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      observer?.disconnect();
     };
   }, [departments]);
 

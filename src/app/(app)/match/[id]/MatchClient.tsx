@@ -347,12 +347,12 @@ export default function MatchClient({ requirement, extracted, rescuePlan, matchR
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {matchResults.map((match, i) => {
-              const isExpanded = expandedMatch === match.resource.id;
+              const isExpanded = expandedMatch === (match.matchId || match.resource.id);
               const isTop = i === 0;
               const dept = match.resource.department;
 
               return (
-                <div key={match.resource.id} className={`match-card ${isTop ? 'top-match' : ''} animate-fade-in`}>
+                <div key={match.matchId ? `match-${match.matchId}` : `${match.resource.id}-${i}`} className={`match-card ${isTop ? 'top-match' : ''} animate-fade-in`}>
                   {isTop && (
                     <div className="rescue-badge" style={{ marginBottom: '12px', width: 'fit-content' }}>
                       <Star size={10} />
@@ -412,7 +412,7 @@ export default function MatchClient({ requirement, extracted, rescuePlan, matchR
                     <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <button
                         style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                        onClick={() => setExpandedMatch(isExpanded ? null : match.resource.id)}>
+                        onClick={() => setExpandedMatch(isExpanded ? null : (match.matchId || match.resource.id))}>
                         {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                         {isExpanded ? 'Less' : 'Score breakdown'}
                       </button>

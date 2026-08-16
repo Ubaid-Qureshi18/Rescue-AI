@@ -17,6 +17,7 @@ import {
   ClipboardList,
   TrendingUp,
   Search,
+  Plus,
 } from 'lucide-react';
 
 const navItems = [
@@ -157,6 +158,31 @@ export default function Sidebar() {
             Admin Panel
           </Link>
         </nav>
+
+        {/* List Resource CTA */}
+        <div style={{ padding: '0 12px', marginTop: '8px' }}>
+          <Link
+            href="/resources"
+            onClick={() => setMobileOpen(false)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px',
+              background: 'linear-gradient(135deg, rgba(0,217,165,0.15), rgba(0,217,165,0.06))',
+              border: '1px solid rgba(0, 217, 165, 0.25)',
+              borderRadius: 10, color: '#00D9A5', fontSize: 13, fontWeight: 600,
+              textDecoration: 'none', transition: 'all 0.2s ease',
+            }}
+            className="list-resource-btn"
+          >
+            <div style={{
+              width: 24, height: 24, borderRadius: 6,
+              background: 'rgba(0,217,165,0.2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Plus size={14} color="#00D9A5" />
+            </div>
+            <span>List a Resource</span>
+          </Link>
+        </div>
 
         {/* Live Rescue Stats Ticker */}
           {stats && (

@@ -264,7 +264,10 @@ export default function ResourcesClient({ resources, departments }: { resources:
       <header className="topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <h1 className="topbar-title">Resource Explorer</h1>
-          <span className="badge badge-purple">{resources.length} Total Assets</span>
+          <span className="badge badge-purple">{resources.length} Assets</span>
+          <span className="badge badge-green">
+            {resources.filter(r => r.status === 'AVAILABLE').length} Available
+          </span>
         </div>
         <div className="topbar-actions">
           {/* View Toggle */}
@@ -297,26 +300,50 @@ export default function ResourcesClient({ resources, departments }: { resources:
             <Upload size={14} />
             Bulk CSV
           </button>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowListModal(true)}>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => setShowListModal(true)}
+            style={{
+              background: 'linear-gradient(135deg, #00D9A5, #00b894)',
+              border: 'none', fontWeight: 700,
+            }}
+          >
             <Plus size={14} />
-            List a Resource
+            + List a Resource
           </button>
         </div>
       </header>
 
       <div className="page-container">
-        {/* Summary bar */}
+        {/* Hero Summary Banner */}
         <div className="animate-fade-in" style={{
-          display: 'flex', gap: 16, marginBottom: 24,
-          padding: '14px 20px',
-          background: 'var(--bg-card)', border: '1px solid var(--border-subtle)',
-          borderRadius: 14, alignItems: 'center', flexWrap: 'wrap',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gap: 12, marginBottom: 24,
         }}>
-          <div>
-            <span style={{ fontSize: 26, fontWeight: 800, color: 'var(--rescue-green)' }}>{resources.length}</span>
-            <span style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: 8 }}>Available Assets</span>
-          </div>
-          <div style={{ width: 1, height: 32, background: 'var(--border-subtle)' }} />
+          {[
+            { label: 'Total Assets', value: resources.length, color: 'var(--rescue-green)', suffix: '' },
+            { label: 'Available Now', value: resources.filter(r => r.status === 'AVAILABLE').length, color: '#00D9A5', suffix: '' },
+            { label: 'Departments', value: new Set(resources.map(r => r.departmentId)).size, color: 'var(--ai-purple)', suffix: '' },
+            {
+              label: 'Total Value',
+              value: Math.round(resources.reduce((s, r) => s + (r.estimatedValue || 0) * (r.quantity || 1), 0) / 100000),
+              color: '#FCD34D', suffix: 'L'
+            },
+          ].map(({ label, value, color, suffix }) => (
+            <div key={label} style={{
+              padding: '14px 18px',
+              background: 'var(--bg-card)', border: '1px solid var(--border-subtle)',
+              borderRadius: 12, textAlign: 'center',
+            }}>
+              <div style={{ fontSize: 28, fontWeight: 800, color }}>{label === 'Total Value' ? '₹' : ''}{value}{suffix}</div>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Category filter pills */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
           {categories.map(cat => {
             const count = resources.filter(r => r.category === cat).length;
             const Icon = CATEGORY_ICONS[cat] || Package;
@@ -325,12 +352,12 @@ export default function ResourcesClient({ resources, departments }: { resources:
                 onClick={() => setCategoryFilter(categoryFilter === cat ? '' : cat)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer',
-                  background: categoryFilter === cat ? 'rgba(0,217,165,0.1)' : 'transparent',
-                  border: categoryFilter === cat ? '1px solid rgba(0,217,165,0.2)' : '1px solid transparent',
-                  padding: '5px 12px', borderRadius: 8, transition: 'all 0.15s',
+                  background: categoryFilter === cat ? 'rgba(0,217,165,0.1)' : 'var(--bg-card)',
+                  border: categoryFilter === cat ? '1px solid rgba(0,217,165,0.3)' : '1px solid var(--border-subtle)',
+                  padding: '5px 12px', borderRadius: 20, transition: 'all 0.15s',
                 }}>
-                <Icon size={13} color="var(--text-muted)" />
-                <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>{cat}</span>
+                <Icon size={13} color={categoryFilter === cat ? 'var(--rescue-green)' : 'var(--text-muted)'} />
+                <span style={{ fontSize: 13, color: categoryFilter === cat ? 'var(--rescue-green)' : 'var(--text-secondary)', fontWeight: 500 }}>{cat}</span>
                 <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 700 }}>{count}</span>
               </button>
             );
